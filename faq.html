@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FAQ | Calibration Range Trainer</title>
+    <link rel="stylesheet" href="styles.css?v=5">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="faq-hero">
+        <div class="eyebrow">Calibration Range Trainer</div>
+        <h1>FAQ for learners</h1>
+        <p>
+          This page explains the ideas behind the exercise in plain English. You do not need a background
+          in statistics to use the trainer. The main habit is simple: give a range, choose how confident
+          you are, then learn from whether reality landed inside or outside your range.
+        </p>
+        <a class="primary-link" href="index.html">Back to the trainer</a>
+      </section>
+
+      <section class="faq-list" aria-label="Frequently asked questions">
+        <article class="faq-item">
+          <h2>What is this tool for?</h2>
+          <p>
+            This tool is for practising calibrated judgement. It is not mainly a trivia quiz. You will
+            see questions where you probably do not know the exact answer, such as a population, a year
+            in history, a distance between cities, or a practical business-like quantity. Your job is not
+            to guess one exact number. Your job is to give a range that honestly represents your uncertainty.
+          </p>
+          <p>
+            That matters because many real decisions work this way. In business, strategy, operations,
+            project planning, and risk management, you often do not know the exact answer. You still need
+            to make a decision. A calibrated range helps you say, “Here is what I think is plausible, here
+            is how confident I am, and here is whether more information would be worth collecting.”
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>What is overconfidence bias?</h2>
+          <p>
+            Overconfidence bias is the tendency to feel more certain than the evidence really supports.
+            In this exercise, overconfidence usually shows up as ranges that are too narrow. For example,
+            someone might say they are 90% confident that a value is between 40 and 50, when the true value
+            is actually 73. The problem is not that they were wrong once. The problem is that their stated
+            confidence did not match how often their ranges actually contained the truth.
+          </p>
+          <p>
+            Most people are not overconfident because they are careless. They are overconfident because
+            the first answer that comes to mind feels more solid than it is. We notice reasons our answer
+            could be right, and we often underweight reasons it could be wrong. This tool creates quick,
+            repeated feedback so you can feel that pattern and adjust.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>What is a confidence interval in this exercise?</h2>
+          <p>
+            In this exercise, a confidence interval is a lower bound and an upper bound, plus a confidence
+            level. If you choose 80% confidence, you are saying something like: “For estimates like this,
+            I expect the true answer to fall inside my range about 8 times out of 10.”
+          </p>
+          <p>
+            This is different from saying, “I hope the answer is inside my range,” or “this is my best
+            guess.” A confidence interval is a promise about your uncertainty. If you make many 90%
+            intervals, roughly 9 out of 10 should contain the truth. If only 5 out of 10 contain the truth,
+            your 90% ranges are too narrow. If 10 out of 10 contain the truth but the ranges are enormous,
+            they may be safe but not very useful.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>Why do I choose a confidence level?</h2>
+          <p>
+            Choosing a confidence level makes you decide how strongly you want to stand behind your range.
+            A high-confidence range, such as 90%, should usually be wider because you are asking it to catch
+            the truth most of the time. A lower-confidence range, such as 50% or 60%, can be narrower because
+            you are allowing more misses.
+          </p>
+          <p>
+            This is useful because real decisions do not always need the same level of certainty. Sometimes
+            you need a conservative range because being wrong would be expensive. Other times, a narrower
+            lower-confidence range is enough to decide whether an idea is worth exploring. The point is to
+            match the range to the confidence claim, rather than using the same kind of range for every
+            situation.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>What is a good range?</h2>
+          <p>
+            A good range is wide enough to match what you really know, but narrow enough to be useful. The
+            widest possible range is not automatically good. For example, if asked for the population of a
+            country, saying “between 0 and 1 billion” will probably contain the answer, but it does not help
+            anyone make a decision.
+          </p>
+          <p>
+            A useful range makes uncertainty visible. If your range is too narrow, you are pretending to know
+            more than you do. If your range is too wide, you may be avoiding the judgement task. The skill is
+            to find the range that sits near the edge of your understanding: honest, but still informative.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>What is the equivalence bet?</h2>
+          <p>
+            The equivalence bet is a way to test whether your range and confidence level really match. Imagine
+            two bets with the same prize. In Bet A, you win if the true answer is inside your range. In Bet B,
+            you win a lottery with the same probability as your selected confidence. If you selected 80%
+            confidence, Bet B is an 80% lottery.
+          </p>
+          <p>
+            Now ask yourself which bet you would rather take. If Bet A feels clearly safer than the lottery,
+            your range may be too wide. You may have padded it so much that it no longer says much. If Bet B
+            feels safer, your range may be too narrow. You may be claiming more certainty than you really have.
+            Adjust the range until the two bets feel close. That “close call” feeling is useful: it means your
+            stated confidence and your range are starting to line up.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>How is my simple score calculated?</h2>
+          <p>
+            The simple score is deliberately easy. For each question, you get 1 point if the true answer falls
+            inside your range. You get 0 points if it falls outside your range. A round has 5 questions, so the
+            simple score is out of 5.
+          </p>
+          <p>
+            A high simple score is good, but it is not the whole story. If you get 5 out of 5 by making every
+            range extremely wide, you have contained the answers but you may not have learned much about useful
+            uncertainty. In a business setting, a range that is always huge may not reduce uncertainty enough
+            to support a decision. That is why the app also shows interval score and calibration charts.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>How is the interval score calculated?</h2>
+          <p>
+            The interval score rewards useful uncertainty. You do not need to memorise the formula to use the
+            tool. The basic idea is this: a correct range is better when it is narrower, because it gave more
+            information. But a range that misses the truth is penalised, especially if you said you were highly
+            confident.
+          </p>
+          <p>
+            For example, suppose two people both miss the true answer by the same amount. One person said they
+            were 50% confident, and the other said they were 90% confident. The 90% miss is more serious because
+            the person made a stronger claim. The interval score captures that difference. Lower interval scores
+            are better.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>What does the calibration progress chart show?</h2>
+          <p>
+            The calibration progress chart compares two lines. The teal line shows your actual cumulative hits:
+            it goes up by 1 whenever the true answer was inside your range, and stays flat when the answer was
+            outside your range. The gold line shows what a perfectly calibrated result would predict from the
+            confidence levels you selected.
+          </p>
+          <p>
+            Here is a small example. If your first three confidence levels are 90%, 80%, and 70%, then the
+            perfectly calibrated line expects 0.9 + 0.8 + 0.7 = 2.4 hits after three questions. Your actual
+            line can only move in whole points, because each question is either inside the range or outside it.
+            Over just 5 questions, the lines will be noisy. Over repeated rounds, you want your actual results
+            to roughly track what your confidence levels predicted.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>Why should I play multiple rounds?</h2>
+          <p>
+            Five questions is enough to create feedback, but it is not enough to diagnose you perfectly. Even a
+            well-calibrated person can have a lucky or unlucky round. Calibration is about repeated performance.
+            If you keep choosing 80% confidence, then over many similar questions you should be right about 8
+            times out of 10.
+          </p>
+          <p>
+            Playing several rounds helps you notice your pattern. Some people discover that they are consistently
+            too narrow. Others discover that they make very wide ranges and avoid taking an informative position.
+            The goal is to become more aware of how your confidence behaves under uncertainty.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>How can I improve my estimates?</h2>
+          <p>
+            One useful method is Fermi decomposition: break a hard question into smaller pieces that are easier
+            to estimate. For example, instead of guessing the number of piano tuners in a city directly, estimate
+            the number of people, the number of households, the share with pianos, how often pianos are tuned,
+            and how many jobs a tuner can do. Each piece may still be uncertain, but the structure gives you a
+            better starting point.
+          </p>
+          <p>
+            Also practise challenging your first anchor. Ask, “What would make my estimate wrong?” or “What
+            would I believe if my first answer were too low?” For unfamiliar questions, widen your interval
+            before submitting. A high-confidence range should often feel wider than your first instinct.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>How does this apply to business?</h2>
+          <p>
+            Business decisions often depend on uncertain quantities: market size, demand, cost, delivery time,
+            project delay, churn, conversion rate, productivity improvement, operational risk, or the value of
+            a new product. You may not know the exact number, but you can still estimate a range and attach a
+            confidence level.
+          </p>
+          <p>
+            Once uncertainty is expressed as a range, it becomes easier to discuss. You can ask whether the
+            uncertainty is big enough to affect the decision. You can ask what information would narrow the
+            range. You can also decide whether measuring something is worth the cost. This is the practical
+            point behind calibrated estimation: better uncertainty estimates lead to better decisions.
+          </p>
+        </article>
+
+        <article class="faq-item">
+          <h2>What should I remember after the workshop?</h2>
+          <p>
+            Remember the habit more than the scores. When you face an uncertain quantity, do not only give a
+            single-point guess. Give a range. Attach a confidence level. Test the range with the equivalence bet.
+            Ask why you might be wrong. Then update from feedback.
+          </p>
+          <p>
+            Calibration is not about becoming perfectly accurate overnight. It is about becoming more honest,
+            more disciplined, and more useful when you reason under uncertainty. That skill travels well from
+            quiz questions to business judgement.
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
