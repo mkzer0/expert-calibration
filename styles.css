@@ -407,8 +407,13 @@ legend {
   background: var(--surface-strong);
 }
 
-.stats-grid .calibration-tile {
+.stats-grid .calibration-tile,
+.stats-grid .metric-tile {
   border-width: 2px;
+}
+
+.stats-grid .metric-tile {
+  border-color: rgb(11 111 112 / 28%);
 }
 
 .calibration-tile.calibrated {
@@ -439,25 +444,19 @@ legend {
   font-size: clamp(1.5rem, 3vw, 2.2rem);
 }
 
-.calibration-tile b {
+.calibration-tile b,
+.metric-tile b {
   display: block;
   margin-top: 8px;
   font-size: 1rem;
 }
 
-.calibration-tile p {
+.calibration-tile p,
+.metric-tile p {
   margin: 8px 0 0;
   color: var(--ink);
   font-size: 0.92rem;
   line-height: 1.45;
-}
-
-.interpretation {
-  border-left: 4px solid var(--accent);
-  padding: 14px 18px;
-  background: rgb(11 111 112 / 8%);
-  color: var(--ink);
-  font-weight: 700;
 }
 
 .chart-section,

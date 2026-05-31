@@ -191,18 +191,6 @@ export function calculateRoundStats(answers, roundQuestions = []) {
   };
 }
 
-function getInterpretation(stats) {
-  if (stats.actualHits + 0.5 < stats.expectedHits) {
-    return "Your ranges missed more often than your confidence implied. That is a classic overconfidence signal: try widening intervals or challenging the first anchor.";
-  }
-
-  if (stats.actualHits > stats.expectedHits + 1 && stats.averageWidthRatio > 0.75) {
-    return "You contained the truth often, but your ranges may be too broad to support a business decision. Try decomposing the question to reduce uncertainty.";
-  }
-
-  return "Your hit rate is close to your stated confidence for this round. Keep repeating rounds to see whether that pattern holds.";
-}
-
 export function getCalibrationTips(stats, previousStats = null) {
   const tips = [];
   const absoluteGap = Math.abs(stats.calibrationGap);
@@ -449,17 +437,23 @@ function renderResults() {
       <div class="eyebrow">Round complete</div>
       <h1>Your calibration summary</h1>
       <div class="stats-grid">
-        <article>
+        <article class="metric-tile">
           <span>Simple score</span>
           <strong>${stats.actualHits}/5</strong>
+          <b>Truth inside range</b>
+          <p>This counts how many true answers landed inside your ranges. It does not tell whether the ranges were narrow enough to be useful.</p>
         </article>
-        <article>
+        <article class="metric-tile">
           <span>Expected hits</span>
           <strong>${formatNumber(stats.expectedHits)}</strong>
+          <b>What your confidence predicted</b>
+          <p>This is the sum of your confidence choices. If you chose 80% five times, a calibrated result would expect about 4 hits.</p>
         </article>
-        <article>
+        <article class="metric-tile">
           <span>Average confidence</span>
           <strong>${formatConfidence(stats.averageConfidence)}</strong>
+          <b>Your average certainty claim</b>
+          <p>This shows how strongly you stood behind your ranges across the round. Higher confidence should usually mean wider ranges.</p>
         </article>
         <article class="calibration-tile ${calibrationStatus.tone}">
           <span>Calibration gap</span>
@@ -469,8 +463,6 @@ function renderResults() {
           <p>${calibrationStatus.action}</p>
         </article>
       </div>
-
-      <p class="interpretation">${getInterpretation(stats)}</p>
 
       <section class="chart-section" aria-labelledby="calibration-chart-heading">
         <div class="section-heading">
