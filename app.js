@@ -8,6 +8,7 @@ const state = {
   questions: [],
   currentIndex: 0,
   answers: [],
+  roundHistory: [],
   hasCompletedFirstRound: false
 };
 
@@ -131,6 +132,11 @@ function submitAnswer(event) {
 
   if (state.answers.length === state.questions.length) {
     state.hasCompletedFirstRound = true;
+    state.roundHistory.push({
+      roundNumber: state.roundHistory.length + 1,
+      questions: [...state.questions],
+      answers: [...state.answers]
+    });
     state.currentView = "results";
   } else {
     state.currentIndex += 1;
@@ -144,6 +150,7 @@ function stopSession() {
   state.questions = [];
   state.currentIndex = 0;
   state.answers = [];
+  state.roundHistory = [];
   render();
 }
 
@@ -156,21 +163,31 @@ function formatConfidence(value) {
 }
 
 function getRoundStats() {
-  const actualHits = state.answers.filter((answer) => answer.hit).length;
-  const expectedHits = state.answers.reduce((total, answer) => total + answer.confidence, 0);
-  const averageConfidence = expectedHits / state.answers.length;
-  const totalIntervalScore = state.answers.at(-1)?.cumulativeScore || 0;
-  const averageWidthRatio = state.answers.reduce((total, answer) => {
-    const question = state.questions.find((item) => item.id === answer.questionId);
+  return calculateRoundStats(state.answers, state.questions);
+}
+
+export function calculateRoundStats(answers, roundQuestions = []) {
+  const actualHits = answers.filter((answer) => answer.hit).length;
+  const expectedHits = answers.reduce((total, answer) => total + answer.confidence, 0);
+  const averageConfidence = expectedHits / answers.length;
+  const totalIntervalScore = answers.at(-1)?.cumulativeScore || 0;
+  const averageWidthRatio = answers.reduce((total, answer, index) => {
+    const question = roundQuestions.find((item) => item.id === answer.questionId) || roundQuestions[index];
+    if (!question) {
+      return total;
+    }
+
     return total + ((answer.high - answer.low) / question.normalizer);
-  }, 0) / state.answers.length;
+  }, 0) / answers.length;
+  const calibrationGap = actualHits - expectedHits;
 
   return {
     actualHits,
     expectedHits,
     averageConfidence,
     totalIntervalScore,
-    averageWidthRatio
+    averageWidthRatio,
+    calibrationGap
   };
 }
 
@@ -184,6 +201,40 @@ function getInterpretation(stats) {
   }
 
   return "Your hit rate is close to your stated confidence for this round. Keep repeating rounds to see whether that pattern holds.";
+}
+
+export function getCalibrationTips(stats, previousStats = null) {
+  const tips = [];
+  const absoluteGap = Math.abs(stats.calibrationGap);
+  const previousGap = previousStats ? Math.abs(previousStats.calibrationGap) : null;
+
+  if (stats.actualHits + 0.5 < stats.expectedHits) {
+    tips.push("Your actual hits are below the calibrated line. Next round, widen ranges or lower confidence when you do not have strong evidence.");
+  } else if (stats.actualHits > stats.expectedHits + 1 && stats.averageWidthRatio > 0.75) {
+    tips.push("You are beating the calibrated line, but your ranges are very wide. Try narrowing ranges until the equivalence bet feels like a close call.");
+  } else {
+    tips.push("Your actual hits are close to what your confidence predicted. Keep repeating rounds to see whether that pattern holds.");
+  }
+
+  if (previousGap !== null) {
+    if (absoluteGap < previousGap) {
+      tips.push("Your calibration gap improved versus the previous round. That is the skill building: estimate, get feedback, adjust.");
+    } else if (absoluteGap > previousGap) {
+      tips.push("Your calibration gap widened versus the previous round. Look back at the misses and ask whether the ranges were too narrow or the confidence was too high.");
+    } else {
+      tips.push("Your calibration gap is unchanged from the previous round. Try changing one thing deliberately: range width, confidence level, or decomposition.");
+    }
+  }
+
+  if (stats.averageConfidence >= 0.85 && stats.actualHits < stats.expectedHits) {
+    tips.push("You used high confidence and still missed. Use the bet test before submitting: would you really prefer your range over the same-odds lottery?");
+  }
+
+  if (stats.averageWidthRatio > 1.5) {
+    tips.push("Your average range is wider than the answer scale. Before the next round, decompose the question so the interval becomes more decision-useful.");
+  }
+
+  return tips.slice(0, 4);
 }
 
 function renderLanding() {
@@ -359,6 +410,8 @@ function handleBetReflection(event) {
 
 function renderResults() {
   const stats = getRoundStats();
+  const previousRound = state.roundHistory.at(-2);
+  const previousStats = previousRound ? calculateRoundStats(previousRound.answers, previousRound.questions) : null;
 
   app.innerHTML = `
     <section class="results-panel">
@@ -378,41 +431,24 @@ function renderResults() {
           <strong>${formatConfidence(stats.averageConfidence)}</strong>
         </article>
         <article>
-          <span>Interval score</span>
-          <strong>${formatNumber(stats.totalIntervalScore)}</strong>
+          <span>Calibration gap</span>
+          <strong>${formatCalibrationGap(stats.calibrationGap)}</strong>
         </article>
       </div>
 
       <p class="interpretation">${getInterpretation(stats)}</p>
 
-      <section class="chart-section" aria-labelledby="chart-heading">
-        <div class="section-heading">
-          <h2 id="chart-heading">Cumulative interval score</h2>
-          <p>Lower is better. Green points contained the truth; red points missed.</p>
-        </div>
-        ${renderChart(state.answers)}
-      </section>
-
       <section class="chart-section" aria-labelledby="calibration-chart-heading">
         <div class="section-heading">
           <h2 id="calibration-chart-heading">Calibration progress</h2>
-          <p>The teal line is your cumulative hits. The gold line is what perfect calibration would predict from your confidence choices.</p>
+          <p>Each round has its own color. Solid lines are actual hits; dashed lines are expected hits from confidence.</p>
         </div>
-        ${renderCalibrationChart(state.answers)}
+        ${renderCalibrationChart(state.roundHistory)}
       </section>
+
+      ${renderCalibrationTips(stats, previousStats)}
 
       ${renderResultRows()}
-
-      <section class="tips">
-        <h2>Next-round tips</h2>
-        <ul>
-          <li>Use Fermi decomposition: break the unknown into smaller estimable parts.</li>
-          <li>Ask why your first answer might be wrong before committing to a range.</li>
-          <li>Before submitting, ask whether you would rather bet on your range or on a lottery with the same odds.</li>
-          <li>For unfamiliar quantities, estimate the order of magnitude first.</li>
-          <li>High confidence should usually feel wider than your first instinct.</li>
-        </ul>
-      </section>
 
       <div class="actions">
         <button class="primary-action" data-start>Play again</button>
@@ -425,100 +461,102 @@ function renderResults() {
   app.querySelector("[data-stop]").addEventListener("click", stopSession);
 }
 
-function renderChart(answers) {
-  const width = 760;
-  const height = 340;
-  const margin = { top: 26, right: 28, bottom: 54, left: 62 };
-  const plotWidth = width - margin.left - margin.right;
-  const plotHeight = height - margin.top - margin.bottom;
-  const maxScore = Math.max(...answers.map((answer) => answer.cumulativeScore), 1);
-  const points = answers.map((answer, index) => {
-    const x = margin.left + (plotWidth * index) / Math.max(answers.length - 1, 1);
-    const y = margin.top + plotHeight - (answer.cumulativeScore / maxScore) * plotHeight;
-    return { ...answer, x, y, index };
-  });
-  const polyline = points.map((point) => `${point.x},${point.y}`).join(" ");
+function formatCalibrationGap(value) {
+  const formatted = formatNumber(Math.abs(value));
+  return value > 0 ? `+${formatted}` : value < 0 ? `-${formatted}` : "0";
+}
 
+function renderCalibrationTips(stats, previousStats) {
   return `
-    <svg class="score-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Cumulative interval score over five questions">
-      <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}" class="axis"></line>
-      <line x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}" class="axis"></line>
-      ${[0, 0.25, 0.5, 0.75, 1].map((tick) => {
-        const y = margin.top + plotHeight - tick * plotHeight;
-        return `
-          <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="gridline"></line>
-          <text x="${margin.left - 12}" y="${y + 4}" text-anchor="end" class="tick-label">${formatNumber(maxScore * tick)}</text>
-        `;
-      }).join("")}
-      <polyline points="${polyline}" class="score-line"></polyline>
-      ${points.map((point) => `
-        <g>
-          <circle cx="${point.x}" cy="${point.y}" r="8" class="${point.hit ? "hit-dot" : "miss-dot"}"></circle>
-          <text x="${point.x}" y="${height - margin.bottom + 28}" text-anchor="middle" class="tick-label">Q${point.index + 1}</text>
-          <text x="${point.x}" y="${point.y - 14}" text-anchor="middle" class="confidence-label">${formatConfidence(point.confidence)}</text>
-        </g>
-      `).join("")}
-      <text x="18" y="${height / 2}" class="axis-title" transform="rotate(-90 18 ${height / 2})">Cumulative score</text>
-      <text x="${width / 2}" y="${height - 12}" text-anchor="middle" class="axis-title">Questions in this round</text>
-    </svg>
+    <section class="tips">
+      <h2>So what? Try this next round</h2>
+      <ul>
+        ${getCalibrationTips(stats, previousStats).map((tip) => `<li>${tip}</li>`).join("")}
+      </ul>
+    </section>
   `;
 }
 
-export function renderCalibrationChart(answers) {
+export function renderCalibrationChart(roundsOrAnswers) {
+  const rounds = Array.isArray(roundsOrAnswers?.[0]?.answers)
+    ? roundsOrAnswers
+    : [{ roundNumber: 1, answers: roundsOrAnswers }];
   const width = 760;
   const height = 340;
   const margin = { top: 30, right: 34, bottom: 58, left: 58 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
-  let cumulativeHits = 0;
-  let cumulativeExpected = 0;
-  const points = answers.map((answer, index) => {
-    cumulativeHits += answer.hit ? 1 : 0;
-    cumulativeExpected += answer.confidence;
-    const x = margin.left + (plotWidth * index) / Math.max(answers.length - 1, 1);
+  const colors = ["#0b6f70", "#9b5de5", "#d97706", "#2563eb", "#c026d3", "#15803d"];
+  const plottedRounds = rounds.map((round, roundIndex) => {
+    let cumulativeHits = 0;
+    let cumulativeExpected = 0;
+    const answers = round.answers;
+    const points = answers.map((answer, index) => {
+      cumulativeHits += answer.hit ? 1 : 0;
+      cumulativeExpected += answer.confidence;
+      const x = margin.left + (plotWidth * index) / Math.max(answers.length - 1, 1);
+
+      return {
+        index,
+        answer,
+        x,
+        actual: cumulativeHits,
+        expected: cumulativeExpected,
+        actualY: margin.top + plotHeight - (cumulativeHits / ROUND_SIZE) * plotHeight,
+        expectedY: margin.top + plotHeight - (cumulativeExpected / ROUND_SIZE) * plotHeight
+      };
+    });
 
     return {
-      index,
-      answer,
-      x,
-      actual: cumulativeHits,
-      expected: cumulativeExpected,
-      actualY: margin.top + plotHeight - (cumulativeHits / answers.length) * plotHeight,
-      expectedY: margin.top + plotHeight - (cumulativeExpected / answers.length) * plotHeight
+      ...round,
+      color: colors[roundIndex % colors.length],
+      points,
+      actualLine: points.map((point) => `${point.x},${point.actualY}`).join(" "),
+      expectedLine: points.map((point) => `${point.x},${point.expectedY}`).join(" ")
     };
   });
-  const actualLine = points.map((point) => `${point.x},${point.actualY}`).join(" ");
-  const expectedLine = points.map((point) => `${point.x},${point.expectedY}`).join(" ");
 
   return `
     <svg class="score-chart calibration-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Cumulative actual hits versus perfectly calibrated expected hits">
       <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}" class="axis"></line>
       <line x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}" class="axis"></line>
       ${[0, 1, 2, 3, 4, 5].map((tick) => {
-        const y = margin.top + plotHeight - (tick / answers.length) * plotHeight;
+        const y = margin.top + plotHeight - (tick / ROUND_SIZE) * plotHeight;
         return `
           <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="gridline"></line>
           <text x="${margin.left - 12}" y="${y + 4}" text-anchor="end" class="tick-label">${tick}</text>
         `;
       }).join("")}
-      <polyline points="${expectedLine}" class="expected-line"></polyline>
-      <polyline points="${actualLine}" class="actual-line"></polyline>
-      ${points.map((point) => `
-        <g>
-          <circle cx="${point.x}" cy="${point.actualY}" r="7" class="${point.answer.hit ? "hit-dot" : "miss-dot"}"></circle>
-          <circle cx="${point.x}" cy="${point.expectedY}" r="5" class="expected-dot"></circle>
-          <text x="${point.x}" y="${height - margin.bottom + 28}" text-anchor="middle" class="tick-label">Q${point.index + 1}</text>
-        </g>
+      ${plottedRounds.map((round) => `
+        <polyline points="${round.expectedLine}" class="expected-line" style="stroke: ${round.color}"></polyline>
+        <polyline points="${round.actualLine}" class="actual-line" style="stroke: ${round.color}"></polyline>
+        ${round.points.map((point) => `
+          <g>
+            <circle cx="${point.x}" cy="${point.actualY}" r="6" class="${point.answer.hit ? "hit-dot" : "miss-dot"}" style="stroke: ${round.color}"></circle>
+            <circle cx="${point.x}" cy="${point.expectedY}" r="4" class="expected-dot" style="fill: ${round.color}"></circle>
+          </g>
+        `).join("")}
       `).join("")}
+      ${[0, 1, 2, 3, 4].map((index) => {
+        const x = margin.left + (plotWidth * index) / Math.max(ROUND_SIZE - 1, 1);
+        return `<text x="${x}" y="${height - margin.bottom + 28}" text-anchor="middle" class="tick-label">Q${index + 1}</text>`;
+      }).join("")}
       <g class="chart-legend">
-        <line x1="${width - 245}" y1="24" x2="${width - 210}" y2="24" class="actual-line"></line>
-        <text x="${width - 202}" y="29">Your cumulative hits</text>
-        <line x1="${width - 245}" y1="46" x2="${width - 210}" y2="46" class="expected-line"></line>
-        <text x="${width - 202}" y="51">Perfectly calibrated</text>
+        ${plottedRounds.map((round, index) => {
+          const y = 24 + index * 22;
+          return `
+            <line x1="${width - 245}" y1="${y}" x2="${width - 210}" y2="${y}" class="actual-line" style="stroke: ${round.color}"></line>
+            <text x="${width - 202}" y="${y + 5}">Round ${round.roundNumber}</text>
+          `;
+        }).join("")}
       </g>
       <text x="18" y="${height / 2}" class="axis-title" transform="rotate(-90 18 ${height / 2})">Cumulative hits</text>
       <text x="${width / 2}" y="${height - 12}" text-anchor="middle" class="axis-title">Questions in this round</text>
     </svg>
+    <div class="chart-key" aria-label="Chart line key">
+      <span><strong>Solid line:</strong> actual cumulative hits</span>
+      <span><strong>Dashed line:</strong> expected hits if your confidence is calibrated</span>
+    </div>
   `;
 }
 

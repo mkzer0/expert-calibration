@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { CONFIDENCE_LEVELS, calculateIntervalScore, drawRoundQuestions, getInputUnit, renderCalibrationChart, scoreAnswer } from "../app.js";
+import { CONFIDENCE_LEVELS, calculateIntervalScore, calculateRoundStats, drawRoundQuestions, getCalibrationTips, getInputUnit, renderCalibrationChart, scoreAnswer } from "../app.js";
 import { questions } from "../questions.js";
 
 const drawn = drawRoundQuestions(questions, 5, (() => {
@@ -70,9 +70,52 @@ const calibrationChart = renderCalibrationChart([
   { hit: false, confidence: 0.5 }
 ]);
 
-assert.match(calibrationChart, /Your cumulative hits/);
-assert.match(calibrationChart, /Perfectly calibrated/);
+assert.match(calibrationChart, /actual cumulative hits/);
+assert.match(calibrationChart, /expected hits/);
 assert.match(calibrationChart, /class="actual-line"/);
 assert.match(calibrationChart, /class="expected-line"/);
+
+const multiRoundChart = renderCalibrationChart([
+  {
+    roundNumber: 1,
+    answers: [
+      { hit: true, confidence: 0.8 },
+      { hit: false, confidence: 0.8 },
+      { hit: true, confidence: 0.8 },
+      { hit: false, confidence: 0.8 },
+      { hit: true, confidence: 0.8 }
+    ]
+  },
+  {
+    roundNumber: 2,
+    answers: [
+      { hit: true, confidence: 0.9 },
+      { hit: true, confidence: 0.9 },
+      { hit: false, confidence: 0.9 },
+      { hit: true, confidence: 0.9 },
+      { hit: true, confidence: 0.9 }
+    ]
+  }
+]);
+
+assert.match(multiRoundChart, /Round 1/);
+assert.match(multiRoundChart, /Round 2/);
+assert.match(multiRoundChart, /Solid line:/);
+assert.match(multiRoundChart, /Dashed line:/);
+
+const stats = calculateRoundStats(
+  [
+    { hit: false, confidence: 0.9, high: 90, low: 80 },
+    { hit: false, confidence: 0.9, high: 90, low: 80 },
+    { hit: true, confidence: 0.9, high: 120, low: 80 },
+    { hit: false, confidence: 0.9, high: 90, low: 80 },
+    { hit: true, confidence: 0.9, high: 120, low: 80 }
+  ],
+  Array.from({ length: 5 }, () => ({ id: "example", normalizer: 100 }))
+);
+
+assert.equal(stats.actualHits, 2);
+assert.equal(stats.expectedHits, 4.5);
+assert.ok(getCalibrationTips(stats).some((tip) => tip.includes("below the calibrated line")));
 
 console.log("All scoring tests passed.");

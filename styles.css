@@ -521,6 +521,19 @@ legend {
   font-weight: 800;
 }
 
+.chart-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.chart-key strong {
+  color: var(--ink);
+}
+
 .result-list {
   display: grid;
   gap: 12px;
