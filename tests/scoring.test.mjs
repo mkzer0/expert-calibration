@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { CONFIDENCE_LEVELS, calculateIntervalScore, calculateRoundStats, drawRoundQuestions, getCalibrationTips, getInputUnit, renderCalibrationChart, scoreAnswer } from "../app.js";
+import { CONFIDENCE_LEVELS, calculateIntervalScore, calculateRoundStats, drawRoundQuestions, getCalibrationStatus, getCalibrationTips, getInputUnit, renderCalibrationChart, scoreAnswer } from "../app.js";
 import { questions } from "../questions.js";
 
 const drawn = drawRoundQuestions(questions, 5, (() => {
@@ -117,5 +117,8 @@ const stats = calculateRoundStats(
 assert.equal(stats.actualHits, 2);
 assert.equal(stats.expectedHits, 4.5);
 assert.ok(getCalibrationTips(stats).some((tip) => tip.includes("below the calibrated line")));
+assert.equal(getCalibrationStatus(-0.8).tone, "overconfident");
+assert.equal(getCalibrationStatus(0.8).tone, "underconfident");
+assert.equal(getCalibrationStatus(0.2).tone, "calibrated");
 
 console.log("All scoring tests passed.");

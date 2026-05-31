@@ -407,6 +407,25 @@ legend {
   background: var(--surface-strong);
 }
 
+.stats-grid .calibration-tile {
+  border-width: 2px;
+}
+
+.calibration-tile.calibrated {
+  border-color: var(--green);
+  background: rgb(20 122 66 / 10%);
+}
+
+.calibration-tile.overconfident {
+  border-color: var(--red);
+  background: rgb(181 55 55 / 10%);
+}
+
+.calibration-tile.underconfident {
+  border-color: var(--gold);
+  background: rgb(197 138 30 / 14%);
+}
+
 .stats-grid span {
   display: block;
   margin-bottom: 8px;
@@ -416,7 +435,21 @@ legend {
 }
 
 .stats-grid strong {
+  display: block;
   font-size: clamp(1.5rem, 3vw, 2.2rem);
+}
+
+.calibration-tile b {
+  display: block;
+  margin-top: 8px;
+  font-size: 1rem;
+}
+
+.calibration-tile p {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .interpretation {

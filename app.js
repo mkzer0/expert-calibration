@@ -237,6 +237,36 @@ export function getCalibrationTips(stats, previousStats = null) {
   return tips.slice(0, 4);
 }
 
+export function getCalibrationStatus(calibrationGap) {
+  if (calibrationGap < -0.5) {
+    return {
+      tone: "overconfident",
+      label: "Overconfident",
+      marker: "Down",
+      message: "You claimed more certainty than your results supported.",
+      action: "Next round: widen your range until the bet test feels close."
+    };
+  }
+
+  if (calibrationGap > 0.5) {
+    return {
+      tone: "underconfident",
+      label: "Underconfident",
+      marker: "Up",
+      message: "You captured more answers than your confidence predicted.",
+      action: "Next round: narrow ranges if they feel safer than the same-odds lottery."
+    };
+  }
+
+  return {
+    tone: "calibrated",
+    label: "Calibrated",
+    marker: "Level",
+    message: "Your actual hits are close to what your confidence predicted.",
+    action: "Next round: repeat the same discipline and watch whether the pattern holds."
+  };
+}
+
 function renderLanding() {
   app.innerHTML = `
     <section class="hero">
@@ -410,6 +440,7 @@ function handleBetReflection(event) {
 
 function renderResults() {
   const stats = getRoundStats();
+  const calibrationStatus = getCalibrationStatus(stats.calibrationGap);
   const previousRound = state.roundHistory.at(-2);
   const previousStats = previousRound ? calculateRoundStats(previousRound.answers, previousRound.questions) : null;
 
@@ -430,9 +461,12 @@ function renderResults() {
           <span>Average confidence</span>
           <strong>${formatConfidence(stats.averageConfidence)}</strong>
         </article>
-        <article>
+        <article class="calibration-tile ${calibrationStatus.tone}">
           <span>Calibration gap</span>
-          <strong>${formatCalibrationGap(stats.calibrationGap)}</strong>
+          <strong><span aria-hidden="true">${calibrationStatus.marker}</span> ${formatCalibrationGap(stats.calibrationGap)}</strong>
+          <b>${calibrationStatus.label}</b>
+          <p>${calibrationStatus.message}</p>
+          <p>${calibrationStatus.action}</p>
         </article>
       </div>
 
